@@ -29,3 +29,4 @@ app.prepare().then(() => {
       console.log(`> Alam Fashion running on http://${hostname}:${port}`);
     });
 });
+
