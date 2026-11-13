@@ -8,17 +8,31 @@ import path from "node:path";
 if (process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME) {
   try {
     const tmpDbPath = "/tmp/dev.db";
-    const srcDbPath = path.join(process.cwd(), "prisma", "dev.db");
-    if (!fs.existsSync(tmpDbPath) && fs.existsSync(srcDbPath)) {
-      fs.copyFileSync(srcDbPath, tmpDbPath);
+    const candidatePaths = [
+      path.join(process.cwd(), "prisma", "dev.db"),
+      path.join(process.cwd(), ".next", "server", "prisma", "dev.db"),
+    ];
+
+    let sourcePath = "";
+    for (const p of candidatePaths) {
+      if (fs.existsSync(p)) {
+        sourcePath = p;
+        break;
+      }
     }
+
+    if (!fs.existsSync(tmpDbPath) && sourcePath) {
+      fs.copyFileSync(sourcePath, tmpDbPath);
+      console.log(`[Vercel DB] Successfully copied SQLite database to ${tmpDbPath}`);
+    }
+
     // Only redirect if using standard SQLite file path
     const currentUrl = process.env.DATABASE_URL || "file:./dev.db";
     if (currentUrl.startsWith("file:") && !currentUrl.includes("/tmp/")) {
       process.env.DATABASE_URL = `file:${tmpDbPath}`;
     }
   } catch (err) {
-    console.warn("Vercel SQLite database init warning:", err);
+    console.warn("[Vercel DB] SQLite init warning:", err);
   }
 }
 

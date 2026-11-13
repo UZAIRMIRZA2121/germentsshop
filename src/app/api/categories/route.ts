@@ -7,8 +7,16 @@ import { slugify } from "@/lib/utils";
 
 export async function GET() {
   await ensureSeeded();
-  const rows = await prisma.category.findMany();
-  return NextResponse.json({ categories: rows.map(mapCategory) });
+  try {
+    const rows = await prisma.category.findMany({ orderBy: { name: "asc" } });
+    if (rows.length > 0) {
+      return NextResponse.json({ categories: rows.map(mapCategory) });
+    }
+  } catch (err) {
+    console.warn("[Categories] DB read fallback:", err);
+  }
+  const { seedCategories } = await import("@/lib/data/categories");
+  return NextResponse.json({ categories: seedCategories });
 }
 
 export async function POST(req: Request) {

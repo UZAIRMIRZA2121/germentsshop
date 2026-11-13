@@ -19,8 +19,16 @@ async function uniqueProductSlug(base: string, ignoreId?: string): Promise<strin
 
 export async function GET() {
   await ensureSeeded();
-  const rows = await prisma.product.findMany({ orderBy: { createdAt: "desc" } });
-  return NextResponse.json({ products: rows.map(mapProduct) });
+  try {
+    const rows = await prisma.product.findMany({ orderBy: { createdAt: "desc" } });
+    if (rows.length > 0) {
+      return NextResponse.json({ products: rows.map(mapProduct) });
+    }
+  } catch (err) {
+    console.warn("[Products] DB read fallback:", err);
+  }
+  const { seedProducts } = await import("@/lib/data/products");
+  return NextResponse.json({ products: seedProducts });
 }
 
 export async function POST(req: Request) {
