@@ -1,0 +1,15 @@
+# LiteSpeed / cPanel Reverse Proxy configuration for Next.js Node app
+# DO NOT REMOVE. CLOUDLINUX PASSENGER CONFIGURATION BEGIN
+PassengerAppRoot "/home/username/public_html"
+PassengerBaseURI "/"
+PassengerNodejs "/home/username/nodevenv/public_html/20/bin/node"
+PassengerAppType node
+PassengerStartupFile server.js
+# DO NOT REMOVE. CLOUDLINUX PASSENGER CONFIGURATION END
+
+# Optional fallback rewrite if using standalone port proxying:
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  # Forward requests to Node.js if port proxy is configured
+  # RewriteRule ^(.*)$ http://127.0.0.1:3000/$1 [P,L]
+</IfModule>
