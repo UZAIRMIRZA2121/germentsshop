@@ -1,0 +1,151 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String    @id @default(cuid())
+  fullName     String
+  email        String    @unique
+  mobile       String
+  passwordHash String
+  role         String    @default("customer") // "customer" | "admin"
+  gender       String?
+  birthday     String?
+  createdAt    DateTime  @default(now())
+  addresses    Address[]
+  orders       Order[]
+}
+
+model Address {
+  id        String  @id @default(cuid())
+  userId    String
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  label     String
+  fullName  String
+  mobile    String
+  city      String
+  address   String
+  isDefault Boolean @default(false)
+}
+
+model Category {
+  id          String @id @default(cuid())
+  slug        String @unique
+  name        String
+  description String
+  image       String
+}
+
+model Product {
+  id               String   @id @default(cuid())
+  slug             String   @unique
+  sku              String
+  name             String
+  category         String
+  shortDescription String
+  description      String
+  price            Int
+  originalPrice    Int?
+  imagesJson       String
+  colorsJson       String
+  sizesJson        String
+  stock            Int      @default(0)
+  rating           Float    @default(4.5)
+  reviewCount      Int      @default(0)
+  tagsJson         String
+  specsJson        String
+  createdAt        DateTime @default(now())
+}
+
+model Review {
+  id          String   @id @default(cuid())
+  productSlug String
+  author      String
+  rating      Int
+  title       String
+  comment     String
+  verified    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+}
+
+model Order {
+  id                String          @id // e.g. ORD-2026-10001
+  userId            String?
+  user              User?           @relation(fields: [userId], references: [id], onDelete: SetNull)
+  customerName      String
+  customerMobile    String
+  customerEmail     String?
+  city              String
+  address           String
+  notes             String?
+  subtotal          Int
+  shipping          Int
+  discount          Int             @default(0)
+  couponCode        String?
+  total             Int
+  paymentMethod     String          // "cod" | "manual"
+  paymentStatus     String          // "cod_pending" | "cod_collected" | "verification_pending" | "verified" | "rejected"
+  manualMethodId    String?
+  manualMethodName  String?
+  transactionId     String?
+  senderMobile      String?
+  screenshot        String?
+  fulfillmentStatus String          // "placed" | "confirmed" | "processing" | "shipped" | "out_for_delivery" | "delivered" | "cancelled"
+  estimatedFrom     DateTime
+  estimatedTo       DateTime
+  createdAt         DateTime        @default(now())
+  items             OrderItem[]
+  timeline          OrderTimeline[]
+}
+
+model OrderItem {
+  id            String  @id @default(cuid())
+  orderId       String
+  order         Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId     String
+  slug          String
+  name          String
+  image         String
+  price         Int
+  originalPrice Int?
+  quantity      Int
+  size          String?
+  color         String?
+}
+
+model OrderTimeline {
+  id        String   @id @default(cuid())
+  orderId   String
+  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  kind      String   // "order" | "payment"
+  status    String
+  title     String
+  note      String?
+  simulated Boolean  @default(false)
+  at        DateTime @default(now())
+}
+
+model NewsletterSubscriber {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  createdAt DateTime @default(now())
+}
+
+model ContactMessage {
+  id        String   @id @default(cuid())
+  name      String
+  email     String
+  message   String
+  createdAt DateTime @default(now())
+}
+
+model AppMeta {
+  key   String @id
+  value String
+}
+
