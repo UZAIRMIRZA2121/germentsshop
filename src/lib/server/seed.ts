@@ -10,8 +10,8 @@ let seedPromise: Promise<void> | null = null;
 export async function ensureSeeded(): Promise<void> {
   if (!seedPromise) {
     seedPromise = runSeed().catch((err) => {
+      console.warn("Database seed warning:", err?.message || err);
       seedPromise = null;
-      throw err;
     });
   }
   return seedPromise;

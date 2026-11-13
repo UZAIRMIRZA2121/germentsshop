@@ -3,3 +3,4 @@ deployment:
   tasks:
     - export DEPLOYPATH=/home/mutechst/eventyfy.pk.mutech-studio.com/
     - /bin/cp -R * $DEPLOYPATH
+

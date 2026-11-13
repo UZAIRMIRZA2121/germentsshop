@@ -20,37 +20,45 @@ export async function POST(req: Request) {
   }
 
   const normalizedEmail = email.trim().toLowerCase();
-  const existing = await prisma.user.findUnique({ where: { email: normalizedEmail } });
-  if (existing) {
-    return NextResponse.json({ error: "An account with this email already exists." }, { status: 409 });
-  }
 
-  const user = await prisma.user.create({
-    data: {
-      fullName: fullName.trim(),
-      mobile: mobile.trim(),
-      email: normalizedEmail,
-      passwordHash: hashPassword(password),
+  try {
+    const existing = await prisma.user.findUnique({ where: { email: normalizedEmail } });
+    if (existing) {
+      return NextResponse.json({ error: "An account with this email already exists." }, { status: 409 });
+    }
+
+    const user = await prisma.user.create({
+      data: {
+        fullName: fullName.trim(),
+        mobile: mobile.trim(),
+        email: normalizedEmail,
+        passwordHash: hashPassword(password),
+        role: "customer",
+      },
+    });
+
+    await setSessionCookie({
+      userId: user.id,
       role: "customer",
-    },
-  });
-
-  await setSessionCookie({
-    userId: user.id,
-    role: "customer",
-    email: user.email,
-    fullName: user.fullName,
-  });
-
-  return NextResponse.json({
-    user: {
-      id: user.id,
-      fullName: user.fullName,
       email: user.email,
-      mobile: user.mobile,
-      role: user.role,
-      joinedAt: user.createdAt.toISOString(),
-    },
-  });
-}
+      fullName: user.fullName,
+    });
 
+    return NextResponse.json({
+      user: {
+        id: user.id,
+        fullName: user.fullName,
+        email: user.email,
+        mobile: user.mobile,
+        role: user.role,
+        joinedAt: user.createdAt.toISOString(),
+      },
+    });
+  } catch (err) {
+    console.error("Register error:", err);
+    return NextResponse.json(
+      { error: err instanceof Error ? err.message : "Failed to create account. Please try again." },
+      { status: 500 },
+    );
+  }
+}

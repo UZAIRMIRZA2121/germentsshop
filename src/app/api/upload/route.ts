@@ -57,13 +57,18 @@ export async function POST(req: Request) {
     const uniqueId = `${Date.now()}-${randomBytes(6).toString("hex")}`;
     const filename = `product-${uniqueId}${safeExt}`;
 
-    const uploadDir = path.join(process.cwd(), "public", "uploads");
-    await mkdir(uploadDir, { recursive: true });
-
-    const filePath = path.join(uploadDir, filename);
-    await writeFile(filePath, buffer);
-
-    const publicUrl = `/uploads/${filename}`;
+    let publicUrl = "";
+    try {
+      const uploadDir = path.join(process.cwd(), "public", "uploads");
+      await mkdir(uploadDir, { recursive: true });
+      const filePath = path.join(uploadDir, filename);
+      await writeFile(filePath, buffer);
+      publicUrl = `/uploads/${filename}`;
+    } catch {
+      // Fallback for serverless environments (e.g. Vercel) with read-only filesystem
+      const base64 = buffer.toString("base64");
+      publicUrl = `data:${file.type};base64,${base64}`;
+    }
 
     return NextResponse.json({
       success: true,
