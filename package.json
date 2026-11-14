@@ -5,7 +5,7 @@
   "description": "Alam Fashion — premium e-commerce platform built with Next.js, TypeScript, Tailwind CSS, Prisma SQLite backend, and WhatsApp order dispatch",
   "scripts": {
     "dev": "next dev",
-    "build": "prisma generate && next build",
+    "build": "prisma generate && prisma db push --skip-generate && next build",
     "postinstall": "prisma generate",
     "start": "node server.js",
     "lint": "next lint",

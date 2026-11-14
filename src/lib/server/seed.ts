@@ -17,10 +17,19 @@ export async function ensureSeeded(): Promise<void> {
   return seedPromise;
 }
 
+/**
+ * Seeds each table independently, only when it is empty. A half-finished or
+ * concurrent first run (common on serverless cold starts) can therefore never
+ * leave the database permanently missing products or orders.
+ */
 async function runSeed(): Promise<void> {
-  const existingUsers = await prisma.user.count();
-  if (existingUsers > 0) return;
+  if ((await prisma.user.count()) === 0) await seedUserRows();
+  if ((await prisma.category.count()) === 0) await seedCategoryRows();
+  if ((await prisma.product.count()) === 0) await seedProductRows();
+  if ((await prisma.order.count()) === 0) await seedOrderRows();
+}
 
+async function seedUserRows(): Promise<void> {
   // 1. Seed Admin & Demo Customer
   const adminEmail = "admin@alamfashion.example";
   await prisma.user.create({
@@ -58,6 +67,9 @@ async function runSeed(): Promise<void> {
     },
   });
 
+}
+
+async function seedCategoryRows(): Promise<void> {
   // 2. Seed Categories
   for (const c of seedCategories) {
     await prisma.category.create({
@@ -71,6 +83,9 @@ async function runSeed(): Promise<void> {
     });
   }
 
+}
+
+async function seedProductRows(): Promise<void> {
   // 3. Seed Products
   for (const p of seedProducts) {
     await prisma.product.create({
@@ -97,6 +112,9 @@ async function runSeed(): Promise<void> {
     });
   }
 
+}
+
+async function seedOrderRows(): Promise<void> {
   // 4. Seed Initial Orders
   const orders = buildSeedOrders();
   for (const o of orders) {

@@ -20,17 +20,12 @@ export async function GET() {
     return NextResponse.json({ orders: [] });
   }
   const where = session.role === "admin" ? {} : { userId: session.userId };
-  try {
-    const rows = await prisma.order.findMany({
-      where,
-      include: { items: true, timeline: true },
-      orderBy: { createdAt: "desc" },
-    });
-    return NextResponse.json({ orders: rows.map(mapOrder) });
-  } catch (err) {
-    console.warn("[Orders] DB read fallback:", err);
-    return NextResponse.json({ orders: [] });
-  }
+  const rows = await prisma.order.findMany({
+    where,
+    include: { items: true, timeline: true },
+    orderBy: { createdAt: "desc" },
+  });
+  return NextResponse.json({ orders: rows.map(mapOrder) });
 }
 
 export async function POST(req: Request) {

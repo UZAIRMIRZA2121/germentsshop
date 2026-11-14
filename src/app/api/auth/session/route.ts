@@ -10,30 +10,12 @@ export async function GET() {
   if (!session) {
     return NextResponse.json({ user: null, addresses: [] });
   }
-  let user = null;
-  try {
-    user = await prisma.user.findUnique({
-      where: { id: session.userId },
-      include: { addresses: true },
-    });
-  } catch (err) {
-    console.warn("[Session] DB read warning:", err);
-  }
-
+  const user = await prisma.user.findUnique({
+    where: { id: session.userId },
+    include: { addresses: true },
+  });
   if (!user) {
-    return NextResponse.json({
-      user: {
-        id: session.userId,
-        fullName: session.fullName,
-        email: session.email,
-        mobile: "0321 9669289",
-        role: session.role,
-        gender: "",
-        birthday: "",
-        joinedAt: new Date().toISOString(),
-      },
-      addresses: [],
-    });
+    return NextResponse.json({ user: null, addresses: [] });
   }
   return NextResponse.json({
     user: {
